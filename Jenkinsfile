@@ -16,14 +16,17 @@ pipeline {
             }
         }
 
-        stage('Build & Test') {
-            steps {
-                dir('spring-app') { 
-                    sh './mvnw clean package'
-                    sh './mvnw test'
-		}
-            }
+stage('Build & Test') {
+    steps {
+        dir('spring-app') {
+            sh '''
+            mvn clean package
+            mvn test
+            '''
         }
+    }
+}
+	
 
         stage('Auth to GCP') {
             steps {
