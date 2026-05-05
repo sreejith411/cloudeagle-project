@@ -4,7 +4,6 @@ pipeline {
     environment {
         PROJECT_ID = "sync-service-dev-2604"
         REGION = "asia-south1"
-        SERVICE = "sync-service"
         IMAGE = "asia-south1-docker.pkg.dev/sync-service-dev-2604/sync-service-repo/sync-service"
     }
 
@@ -19,16 +18,15 @@ pipeline {
         stage('Build & Test') {
             steps {
                 withEnv(["JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64", "PATH=/usr/lib/jvm/java-17-openjdk-amd64/bin:${env.PATH}"]) {
-                dir('spring-app') {
-                    sh '''
-                    mvn clean package
-                    mvn test
-                    '''
+                    dir('spring-app') {
+                        sh '''
+                        mvn clean package
+                        mvn test
+                        '''
+                    }
                 }
             }
         }
-    }
-	
 
         stage('Auth to GCP') {
             steps {
@@ -44,22 +42,18 @@ pipeline {
 
         stage('Build Docker Image') {
             when {
-                not {
-                    changeRequest()
-                }
+                not { changeRequest() }
             }
             steps {
                 dir('spring-app') {
-                sh "docker build -t $IMAGE:$BUILD_NUMBER ."
-		}
+                    sh "docker build -t $IMAGE:$BUILD_NUMBER ."
+                }
             }
         }
 
         stage('Push Image') {
             when {
-                not {
-                    changeRequest()
-                }
+                not { changeRequest() }
             }
             steps {
                 sh "docker push $IMAGE:$BUILD_NUMBER"
@@ -94,12 +88,14 @@ pipeline {
 
                     sh """
                     gcloud run deploy $serviceName \
-                    --image $IMAGE:$BUILD_NUMBER \
-                    --region $REGION \
-                    --platform managed \
-                    --allow-unauthenticated \
-                    --set-env-vars ENV=$envName
+                      --image $IMAGE:$BUILD_NUMBER \
+                      --region $REGION \
+                      --platform managed \
+                      --allow-unauthenticated \
+                      --set-env-vars ENV=$envName
                     """
                 }
             }
         }
+    }
+}
