@@ -5,7 +5,7 @@ pipeline {
         PROJECT_ID = "sync-service-dev-2604"
         REGION = "asia-south1"
         SERVICE = "sync-service"
-        IMAGE = "asia-south1-docker.pkg.dev/$PROJECT_ID/sync-service-repo/sync-service"
+        IMAGE = "asia-south1-docker.pkg.dev/sync-service-dev-2604/sync-service-repo/sync-service"
     }
 
     stages {
@@ -16,21 +16,30 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build & Test') {
             steps {
                 sh 'mvn clean package'
+                sh 'mvn test'
             }
         }
 
-        stage('Test') {
+        stage('Auth to GCP') {
             steps {
-                sh 'mvn test'
+                withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    sh '''
+                    gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                    gcloud config set project sync-service-dev-2604
+                    gcloud auth configure-docker asia-south1-docker.pkg.dev --quiet
+                    '''
+                }
             }
         }
 
         stage('Build Docker Image') {
             when {
-                not { changeRequest() }
+                not {
+                    changeRequest()
+                }
             }
             steps {
                 sh "docker build -t $IMAGE:$BUILD_NUMBER ."
@@ -39,7 +48,9 @@ pipeline {
 
         stage('Push Image') {
             when {
-                not { changeRequest() }
+                not {
+                    changeRequest()
+                }
             }
             steps {
                 sh "docker push $IMAGE:$BUILD_NUMBER"
@@ -48,12 +59,16 @@ pipeline {
 
         stage('Deploy') {
             when {
-                branch 'qa' || branch 'staging' || branch 'main'
+                anyOf {
+                    branch 'qa'
+                    branch 'staging'
+                    branch 'main'
+                }
             }
             steps {
                 script {
                     if (env.BRANCH_NAME == 'main') {
-                        input "Approve production deployment?"
+                        input message: "Approve production deployment?"
                     }
 
                     sh """
