@@ -18,9 +18,10 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                dir('spring-app') 
+                dir('spring-app') { 
                     sh 'mvnw clean package'
                     sh 'mvnw test'
+		}
             }
         }
 
@@ -43,8 +44,9 @@ pipeline {
                 }
             }
             steps {
-                dir('spring-app')
+                dir('spring-app') {
                 sh "docker build -t $IMAGE:$BUILD_NUMBER ."
+		}
             }
         }
 
