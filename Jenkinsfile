@@ -16,18 +16,18 @@ pipeline {
             }
         }
 
-    stage('Build & Test') {
-        steps {
-            withEnv(["JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64", "PATH=/usr/lib/jvm/java-17-openjdk-amd64/bin:${env.PATH}"]) {
-            dir('spring-app') {
-                sh '''
-                mvn clean package
-                mvn test
-                '''
+        stage('Build & Test') {
+            steps {
+                withEnv(["JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64", "PATH=/usr/lib/jvm/java-17-openjdk-amd64/bin:${env.PATH}"]) {
+                dir('spring-app') {
+                    sh '''
+                    mvn clean package
+                    mvn test
+                    '''
+                }
             }
         }
     }
-}
 	
 
         stage('Auth to GCP') {
@@ -76,19 +76,30 @@ pipeline {
             }
             steps {
                 script {
-                    if (env.BRANCH_NAME == 'main') {
+
+                    def serviceName = ""
+                    def envName = ""
+
+                    if (env.BRANCH_NAME == 'qa') {
+                        serviceName = "sync-service-qa"
+                        envName = "qa"
+                    } else if (env.BRANCH_NAME == 'staging') {
+                        serviceName = "sync-service-staging"
+                        envName = "staging"
+                    } else if (env.BRANCH_NAME == 'main') {
                         input message: "Approve production deployment?"
+                        serviceName = "sync-service-prod"
+                        envName = "prod"
                     }
 
                     sh """
-                    gcloud run deploy $SERVICE \
-                      --image $IMAGE:$BUILD_NUMBER \
-                      --region $REGION \
-                      --platform managed \
-                      --allow-unauthenticated
+                    gcloud run deploy $serviceName \
+                    --image $IMAGE:$BUILD_NUMBER \
+                    --region $REGION \
+                    --platform managed \
+                    --allow-unauthenticated \
+                    --set-env-vars ENV=$envName
                     """
                 }
             }
         }
-    }
-}
