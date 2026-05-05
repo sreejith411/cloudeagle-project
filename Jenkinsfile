@@ -16,13 +16,15 @@ pipeline {
             }
         }
 
-stage('Build & Test') {
-    steps {
-        dir('spring-app') {
-            sh '''
-            mvn clean package
-            mvn test
-            '''
+    stage('Build & Test') {
+        steps {
+            withEnv(["JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64", "PATH=/usr/lib/jvm/java-17-openjdk-amd64/bin:${env.PATH}"]) {
+            dir('spring-app') {
+                sh '''
+                mvn clean package
+                mvn test
+                '''
+            }
         }
     }
 }
