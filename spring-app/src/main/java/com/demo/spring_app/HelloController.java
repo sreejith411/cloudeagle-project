@@ -17,13 +17,11 @@ public class HelloController {
         return "Mongo Connected 🚀";
     }
 
-    @PostMapping("/user")
-    public User createUser(@RequestParam String name) {
-        return repo.save(new User(name));
-    }
+    @Value("${ENV:default}")
+    private String env;
 
-    @GetMapping("/users")
-    public List<User> getUsers() {
-        return repo.findAll();
+    @GetMapping("/")
+    public String home() {
+        return "Sync Service is running in " + env.toUpperCase() + " environment 🚀";
     }
 }
