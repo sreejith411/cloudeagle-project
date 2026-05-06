@@ -1,5 +1,3 @@
-# cloudeagle-project
-
 # 🚀 CloudEagle DevOps Assignment – sync-service
 
 ## 📌 Overview
