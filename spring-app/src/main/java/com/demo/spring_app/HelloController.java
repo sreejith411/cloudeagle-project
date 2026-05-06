@@ -12,11 +12,8 @@ public class HelloController {
         this.repo = repo;
     }
 
-    @Value("${ENV:default}")
-    private String env;
-
     @GetMapping("/")
     public String home() {
-        return "Sync Service is running in " + env.toUpperCase() + " environment 🚀";
+        return "Mongo Connected 🚀";
     }
 }
