@@ -28,9 +28,8 @@ GitHub → Jenkins → Artifact Registry → Cloud Run
 * **Compute:** Cloud Run (serverless container platform)
 * **Database:** MongoDB Atlas (managed NoSQL DB)
 * **CI/CD:** Jenkins
-* **Container Registry:** Artifact Registry
+* **Container Registry:** Google Artifact Registry
 * **Secrets:** GCP Secret Manager
-* **Monitoring:** Cloud Logging & Cloud Monitoring
 
 ---
 
@@ -75,11 +74,9 @@ feature/* → qa → staging → main
 1. Checkout Code
 2. Build Application (Maven)
 3. Run Unit Tests
-4. Static Code Analysis (SonarQube)
-5. Build Docker Image
-6. Push Image to Artifact Registry
-7. Deploy to Cloud Run
-8. Smoke Testing
+4. Build Docker Image
+5. Push Image to Artifact Registry
+6. Deploy to Cloud Run
 
 ---
 
@@ -88,7 +85,6 @@ feature/* → qa → staging → main
 ### On Pull Request:
 
 * Build & Test
-* SonarQube Analysis
 * ❌ No Deployment
 
 ### On Merge:
@@ -138,17 +134,26 @@ feature/* → qa → staging → main
 
 ---
 
-# 🔐 Configuration & Secrets Management
-
 ## 🔹 Configuration
 
-* Environment-specific configs:
+Configuration is managed using environment variables instead of environment-specific configuration files.
 
-  ```
-  application-qa.yml
-  application-staging.yml
-  application-prod.yml
-  ```
+This approach ensures:
+- Separation of config from code
+- Better security practices
+- Flexibility across environments
+
+---
+
+## 🔐 Secrets Handling
+
+Sensitive data such as MongoDB connection strings and API keys are stored securely in Google Cloud Secret Manager.
+
+Secrets are accessed by:
+- Cloud Run via environment variables
+- Jenkins via credentials binding
+
+This ensures that no sensitive data is stored in the codebase.
 
 * Injected via environment variables
 
@@ -161,7 +166,6 @@ feature/* → qa → staging → main
 * Includes:
 
   * MongoDB URI
-  * API Keys
 
 * Accessed securely via:
 
@@ -203,14 +207,12 @@ feature/* → qa → staging → main
 ### Justification:
 
 * Managed high availability
-* Built-in backups
 * Minimal operational overhead
 
 ---
 
 ## 🔹 Networking
 
-* Secure communication via HTTPS
 * Controlled access via IAM roles
 * Optional VPC connector for private access
 
