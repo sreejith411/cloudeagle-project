@@ -1,191 +1,277 @@
-**🚀 CloudEagle DevOps Assignment – Sync Service**
-📌 Overview
+# 🚀 CloudEagle DevOps Assignment – sync-service
 
-This project demonstrates the design and implementation of a CI/CD pipeline and infrastructure for deploying a Spring Boot backend service (sync-service) on Google Cloud Platform.
+## 📌 Overview
 
-The solution focuses on:
+This project demonstrates the design and implementation of a scalable, secure, and cost-effective CI/CD pipeline and infrastructure for a Spring Boot backend service (`sync-service`) deployed on Google Cloud Platform.
 
-Multi-environment deployments (QA, Staging, Production)
-Automated CI/CD using Jenkins
-Scalable and cost-efficient infrastructure using Cloud Run
-Secure configuration and secrets handling
+The service connects to MongoDB and is deployed across three environments:
 
+* QA
+* Staging
+* Production
 
-############################################################################
+---
 
-**🏗️ Architecture Overview**
-Compute: Google Cloud Run (serverless)
-Container Registry: Google Artifact Registry
-CI/CD: Jenkins
-Database: MongoDB (Atlas / external)
-Cloud Services: IAM, Cloud Logging, Cloud Monitoring
+# 🏗️ Architecture Overview
 
-############################################################################
+## 🔹 High-Level Flow
 
-**🌿 Branching Strategy**
------------------------------------------
-| Branch --	Environment	--  Deployment  |
------------------------------------------
-qa	   -->    QA	    -->  Auto deploy
-staging -->  Staging	  -->  Auto deploy
-main	  -->  Production	--> Manual approval
+```
+User → Cloud Run → MongoDB Atlas
 
-#############################################################################
+CI/CD:
+GitHub → Jenkins → Artifact Registry → Cloud Run
+```
 
-**🔄 CI/CD Pipeline (Jenkins)**
-Pipeline Stages:
+## 🔹 Components
 
-Checkout
-Build & Test
-Runs Maven build and unit tests
-Auth to GCP
-Docker Build
-Push to Artifact Registry
-Deploy to Cloud Run
+* **Compute:** Cloud Run (serverless container platform)
+* **Database:** MongoDB Atlas (managed NoSQL DB)
+* **CI/CD:** Jenkins
+* **Container Registry:** Google Artifact Registry
+* **Secrets:** GCP Secret Manager
 
-################################################################################
+---
 
-**🔀 PR vs Merge Behavior**
-Pull Requests
-Only Build & Test executed
-No deployment
-Merge to Branch
-Full pipeline executed including deployment
+# 🌿 Branching Strategy
 
-###################################################################################
+## 🔹 Branch Structure
 
-**🚀 Deployment Strategy**
+```
+main        → Production
+staging     → Staging
+qa          → QA
+feature/*   → Development
+```
 
-Uses Cloud Run revision-based deployment
-Ensures zero downtime
-Each deployment creates a new revision
+## 🔹 Workflow
 
-#################################################################################
+```
+feature/* → qa → staging → main
+```
 
-**🧭 Environment Isolation**
-Each environment is deployed to a separate Cloud Run service:
+## 🔹 Branch to Environment Mapping
 
-**Environment	Service Name - CloudRun**
+| Branch  | Environment |
+| ------- | ----------- |
+| qa      | QA          |
+| staging | Staging     |
+| main    | Production  |
 
-QA:	sync-service-qa
-Staging:	sync-service-staging
-Production:	sync-service-prod
+## 🔹 Safety Controls
 
-##############################################################################
+* `main` branch is protected
+* PR approval required
+* CI checks must pass before merge
+* Manual approval required for production deployment
 
-🔐 Configuration Management
-Environment-specific configs are passed via environment variables
-Example:
-ENV=qa
-MONGO_URI=<env-specific-uri>
+---
 
-################################################################################
+# ⚙️ CI/CD Pipeline (Jenkins)
 
-🔑 Secrets Handling
-Managed using:
-Jenkins Credentials (for pipeline)
-(Optional) GCP Secret Manager
-Sensitive data like MongoDB URIs are not hardcoded
+## 🔹 Pipeline Stages
 
-###############################################################################
+1. Checkout Code
+2. Build Application (Maven)
+3. Run Unit Tests
+4. Build Docker Image
+5. Push Image to Artifact Registry
+6. Deploy to Cloud Run
 
-🔁 Rollback Strategy
-Cloud Run maintains revision history
-In case of failure:
-Rollback to previous stable revision via CLI or Console
+---
 
-#############################################################################
+## 🔹 PR vs Merge Behavior
 
-⚖️ Deployment Safety
+### On Pull Request:
 
-To avoid accidental production deployments:
+* Build & Test
+* ❌ No Deployment
 
-Manual approval step in Jenkins for main branch
-Branch-based deployment control
-GitHub branch protection rules
+### On Merge:
 
-##############################################################################
+* Build Docker Image
+* Push to Registry
+* Deploy based on branch
 
-📈 Scaling & Availability
-Cloud Run provides:
-Auto-scaling (0 → N instances)
-Load balancing
-High availability by default
+---
 
-#############################################################################
+## 🔹 Deployment Logic
 
-💰 Cost Optimization
-Serverless model → pay only for usage
-No idle infrastructure cost
-Suitable for startup constraints
+| Branch  | Deployment Type          |
+| ------- | ------------------------ |
+| qa      | Auto Deploy              |
+| staging | Auto Deploy              |
+| main    | Manual Approval + Deploy |
 
-#############################################################################
+---
 
-🌐 Networking
-Public access enabled using --allow-unauthenticated
-Can be restricted via IAM for secure internal access
+# 🚀 Deployment Strategy
 
-📊 Logging & Monitoring
-Integrated with:
-Google Cloud Logging
-Google Cloud Monitoring
-Enables real-time debugging and alerting
+## 🔹 Strategy Used: Rolling Deployment
 
-🧠 Key Design Decisions
-Cloud Run over GKE/VMs
-Simpler, cost-efficient, no cluster management
-MongoDB Atlas
-Managed database with scaling and backups
-Jenkins
-Flexible and widely used CI/CD tool
+### Why Rolling?
 
-📦 Deliverables
-Jenkinsfile
-CI/CD pipeline implementation
-Multi-environment deployment
-Architecture diagram
-Documentation (this README)
+* Zero downtime
+* Cost efficient
+* Simple to implement
 
-##################################################################################
+### Why Not Blue/Green?
 
-🧩 2. ARCHITECTURE DIAGRAM (simple but impressive)
+* Requires duplicate infrastructure
+* Higher cost
 
-You can recreate this in draw.io or just explain it like this:
+### Why Not Recreate?
 
-🎯 Architecture Flow
-        Developer
-            |
-            |  (Push Code)
-            ▼
-        GitHub Repo
-            |
-            |  (Webhook Trigger)
-            ▼
-         Jenkins
-            |
-   ---------------------
-   |   CI Pipeline     |
-   | Build & Test      |
-   | Docker Build      |
-   ---------------------
-            |
-            ▼
-   Artifact Registry
-            |
-            ▼
-     Cloud Run Services
-   ------------------------
-   | QA       | Staging   |
-   | Prod     |           |
-   ------------------------
-            |
-            ▼
-        MongoDB
-     (Atlas / External)
+* Causes downtime
 
-            |
-            ▼
-   Cloud Logging & Monitoring
+---
 
+## 🔹 Zero Downtime Approach
 
-   
+* Health checks enabled
+* Gradual instance scaling via Cloud Run
+* Traffic managed automatically
+
+---
+
+## 🔹 Configuration
+
+Configuration is managed using environment variables instead of environment-specific configuration files.
+
+This approach ensures:
+- Separation of config from code
+- Better security practices
+- Flexibility across environments
+
+---
+
+## 🔐 Secrets Handling
+
+Sensitive data such as MongoDB connection strings and API keys are stored securely in Google Cloud Secret Manager.
+
+Secrets are accessed by:
+- Cloud Run via environment variables
+- Jenkins via credentials binding
+
+This ensures that no sensitive data is stored in the codebase.
+
+* Injected via environment variables
+
+---
+
+## 🔹 Secrets Handling
+
+* Stored in GCP Secret Manager
+
+* Includes:
+
+  * MongoDB URI
+
+* Accessed securely via:
+
+  * Cloud Run environment variables
+  * Jenkins credentials binding
+
+---
+
+# 🔁 Rollback Strategy
+
+* Each deployment uses a versioned Docker image
+* Example:
+
+  ```
+  build-101, build-102
+  ```
+
+## 🔹 Rollback Method
+
+* Redeploy previous stable image
+* Update Cloud Run traffic to previous revision
+
+---
+
+# ☁️ Infrastructure Design
+
+## 🔹 Compute Choice: Cloud Run
+
+### Justification:
+
+* Fully managed (no server management)
+* Auto-scaling (including scale-to-zero)
+* Cost-efficient for startup workloads
+
+---
+
+## 🔹 Database: MongoDB Atlas
+
+### Justification:
+
+* Managed high availability
+* Minimal operational overhead
+
+---
+
+## 🔹 Networking
+
+* Controlled access via IAM roles
+* Optional VPC connector for private access
+
+---
+
+## 🔹 IAM & Security
+
+* Service accounts with least privilege
+* Secure access to secrets via IAM roles
+
+---
+
+# 📊 Monitoring & Logging
+
+* Cloud Logging for application logs
+
+* Cloud Monitoring for:
+
+  * CPU usage
+  * Error rates
+  * Latency
+
+* Alerts can be configured for production issues
+
+---
+
+# 💰 Cost Optimization
+
+* Cloud Run scale-to-zero reduces idle cost
+* Managed services reduce operational overhead
+* Avoided over-provisioning (no GKE/VM clusters)
+
+---
+
+# 📁 Repository Structure
+
+```
+.
+├── README.md
+├── Jenkinsfile
+├── Dockerfile
+├── architecture.png
+└── deploy.sh
+```
+
+---
+
+# ✅ Conclusion
+
+This solution provides:
+
+* Scalable deployment using serverless architecture
+* Secure and centralized secret management
+* Automated CI/CD pipeline with safe production controls
+* Cost-efficient infrastructure suitable for startups
+
+---
+
+# 👤 Author
+
+Sreejith
+DevOps Engineer
