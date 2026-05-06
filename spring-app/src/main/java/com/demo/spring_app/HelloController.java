@@ -14,6 +14,12 @@ public class HelloController {
 
     @GetMapping("/")
     public String home() {
-        return "Mongo Connected 🚀";
+        return "Hello world 🚀";
     }
+
+    @GetMapping("/db-test")
+    public String testDB() {
+        return "DB Connected Successfully 🚀";
+}
+
 }
