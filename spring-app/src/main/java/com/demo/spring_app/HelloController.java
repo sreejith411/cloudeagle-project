@@ -12,10 +12,10 @@ public class HelloController {
         this.repo = repo;
     }
 
-    @GetMapping("/")
-    public String home() {
-        return "Mongo Connected 🚀";
-    }
+#    @GetMapping("/")
+#    public String home() {
+#        return "Mongo Connected 🚀";
+#    }
 
     @Value("${ENV:default}")
     private String env;
