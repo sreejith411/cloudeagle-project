@@ -92,7 +92,7 @@ pipeline {
                       --region $REGION \
                       --platform managed \
                       --allow-unauthenticated \
-                      --set-env-vars ENV=$envName
+                      --set-env-vars ENV=$envName \
 		      --set-secrets MONGO_URI=mongo-uri-$envName:latest
                     """
                 }
