@@ -10,6 +10,7 @@ Automated CI/CD using Jenkins
 Scalable and cost-efficient infrastructure using Cloud Run
 Secure configuration and secrets handling
 
+
 ############################################################################
 
 **🏗️ Architecture Overview**
